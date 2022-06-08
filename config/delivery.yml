@@ -1,0 +1,51 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: tanzu-java-web-app
+  labels:
+    app.kubernetes.io/part-of: tanzu-java-web-app
+    apps.tanzu.vmware.com/has-tests: "false"
+    apps.tanzu.vmware.com/workload-type: web-qa
+    app.kubernetes.io/component: run
+    carto.run/workload-name: tanzu-java-web-app
+spec:
+  template:
+    metadata:
+      annotations:
+        boot.spring.io/actuator: http://:8081/actuator
+        boot.spring.io/version: 2.5.4
+        conventions.apps.tanzu.vmware.com/applied-conventions: |-
+          spring-boot-convention/spring-boot
+          spring-boot-convention/spring-boot-graceful-shutdown
+          spring-boot-convention/spring-boot-web
+          spring-boot-convention/spring-boot-actuator
+          appliveview-sample/app-live-view-connector-boot
+          appliveview-sample/app-live-view-appflavours-boot
+          appliveview-sample/app-live-view-systemproperties
+        developer.conventions/target-containers: workload
+      labels:
+        app.kubernetes.io/component: run
+        app.kubernetes.io/part-of: tanzu-java-web-app
+        apps.tanzu.vmware.com/has-tests: "false"
+        apps.tanzu.vmware.com/workload-type: web-qa
+        carto.run/workload-name: tanzu-java-web-app
+        conventions.apps.tanzu.vmware.com/framework: spring-boot
+        tanzu.app.live.view: "true"
+        tanzu.app.live.view.application.actuator.port: "8081"
+        tanzu.app.live.view.application.flavours: spring-boot
+        tanzu.app.live.view.application.name: tanzu-java-web-app
+    spec:
+      containers:
+      - env:
+        - name: JAVA_TOOL_OPTIONS
+          value: -Dmanagement.endpoint.health.probes.add-additional-paths="true" -Dmanagement.endpoint.health.show-details=always -Dmanagement.endpoints.web.base-path="/actuator" -Dmanagement.endpoints.web.exposure.include=* -Dmanagement.health.probes.enabled="true" -Dmanagement.server.port="8081" -Dserver.port="8080" -Dserver.shutdown.grace-period="24s"
+        image: us-docker.pkg.dev/cnr-demo/gcr.io/tap-wkld/tanzu-java-web-app-dev-space@sha256:3002edc5d119114cf5c1521a5be3ce47c99d71a5d86a2b4a32dab9ab35a304ee
+        name: workload
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        securityContext:
+          runAsUser: 1000
+      serviceAccountName: default
+
